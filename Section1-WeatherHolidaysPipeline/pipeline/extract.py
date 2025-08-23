@@ -3,6 +3,7 @@ import os
 import requests
 from urllib.parse import urlencode
 from dotenv import load_dotenv
+import pandas as pd
 
 
 load_dotenv()
@@ -26,3 +27,21 @@ def build_weather_api_url(lat: float, long: float, **kwargs) -> str:
     base_url = f"{BASE_API_URL}/archive?latitude={lat}&longitude={long}&{params}"
 
     return base_url
+
+
+def group_weather_info(daily_weather_dict: dict) -> list[dict]:
+    """
+        Convert a dict of lists into a list of dicts, one per index.
+
+        All keys in the input dict must map to lists of the same length.
+    """
+    grouped_data = []
+    number_of_elements = len(daily_weather_dict["time"])
+
+    for i in range(number_of_elements):
+        data = {}
+        for key, value in daily_weather_dict.items():
+            data[key] = value[i]
+        grouped_data.append(data)
+
+    return grouped_data
