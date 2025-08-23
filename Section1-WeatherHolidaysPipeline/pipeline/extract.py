@@ -18,8 +18,10 @@ def get_city_info(city_name: str, country_code: str) -> tuple[float, float, str]
     Returns latitude, longitude, and timezone for a city.
     """
     url = f"{BASE_GEOCODING_API_URL}/search?name={city_name}&count=10&language=en&format=json&countryCode={country_code}"
-    response = requests.get(url).json()
-    result = response["results"][0]
+    
+    response = requests.get(url)
+    response.raise_for_status()
+    result = response.json()["results"][0]
     
     return result["latitude"], result["longitude"], result["timezone"]
 
@@ -70,7 +72,10 @@ def get_start_date(current_date: datetime, last_n_months: int):
     return current_date - relativedelta(months=last_n_months)
 
 
-def get_weather_data(url: str, frequency: Literal["hourly", "daily"] = "daily") -> dict:
-    response = requests.get(url=url)
+def get_weather_data(url: str, data_type: Literal["hourly", "daily"] = "daily") -> dict:
+    if data_type not in ("hourly", "daily"):
+        raise ValueError(f"Invalid data_type: {data_type}. Must be 'hourly' or 'daily'.")
 
-    return response.json()[frequency]
+    response = requests.get(url=url)
+    response.raise_for_status()
+    return response.json()[data_type]
