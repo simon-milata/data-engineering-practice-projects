@@ -5,7 +5,6 @@ import requests
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from urllib.parse import urlencode
 from dotenv import load_dotenv
 
 
@@ -25,11 +24,24 @@ def get_city_info(city_name: str, country_code: str) -> tuple[float, float, str]
     return result["latitude"], result["longitude"], result["timezone"]
 
 
-def build_weather_api_url(lat: float, long: float, **kwargs) -> str:
-    params = urlencode(kwargs)
-    base_url = f"{BASE_ARCHIVE_API_URL}/archive?latitude={lat}&longitude={long}&{params}"
+def build_weather_api_url(
+    lat: float, long: float, start_date: str, end_date: str, timezone: str,
+    hourly: str | None = None, daily: str | None = None
+    ) -> str:
+    params = [
+        f"latitude={lat}",
+        f"longitude={long}",
+        f"start_date={start_date}",
+        f"end_date={end_date}",
+        f"timezone={timezone}",
+    ]
 
-    return base_url
+    if hourly:
+        params.append(f"hourly={hourly}")
+    if daily:
+        params.append(f"daily={daily}")
+    
+    return f"{BASE_ARCHIVE_API_URL}/archive?" + "&".join(params)
 
 
 def group_weather_info(weather_data: dict) -> list[dict]:

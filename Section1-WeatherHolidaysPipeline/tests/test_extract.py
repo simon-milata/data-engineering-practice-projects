@@ -26,24 +26,16 @@ def test_get_city_info_success(mocker):
 def test_build_weather_api_url():
     url = build_weather_api_url(
         lat=52.52, long=13.41,
-        start="2025-08-07", end="2025-08-21",
+        start_date="2025-08-07", end_date="2025-08-21", timezone="Europe/Helsinki",
         hourly="temperature_2m,relative_humidity_2m,soil_moisture_7_to_28cm"
     )
     parsed_params = parse_qs(urlparse(url).query)
     assert parsed_params["latitude"][0] == "52.52"
     assert parsed_params["longitude"][0] == "13.41"
-    assert parsed_params["start"][0] == "2025-08-07"
-    assert parsed_params["end"][0] == "2025-08-21"
+    assert parsed_params["start_date"][0] == "2025-08-07"
+    assert parsed_params["end_date"][0] == "2025-08-21"
+    assert parsed_params["timezone"][0] == "Europe/Helsinki"
     assert parsed_params["hourly"][0] == "temperature_2m,relative_humidity_2m,soil_moisture_7_to_28cm"
-
-
-def test_build_weather_api_url_no_additional_params():
-    url = build_weather_api_url(
-        lat=52.52, long=13.41
-    )
-    parsed_params = parse_qs(urlparse(url).query)
-    assert parsed_params["latitude"][0] == "52.52"
-    assert parsed_params["longitude"][0] == "13.41"
 
 
 def test_group_weather_info():
