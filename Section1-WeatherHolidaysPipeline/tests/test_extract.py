@@ -12,7 +12,7 @@ def test_get_city_info_success(mocker):
     
     mocker.patch("requests.get").return_value.json.return_value = mock_response
     
-    lat, lon, tz = get_city_info("Helsinki")
+    lat, lon, tz = get_city_info(city_name="Helsinki", country_code="FI")
     
     assert lat == 60.16952
     assert lon == 24.93545

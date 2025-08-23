@@ -10,11 +10,11 @@ BASE_ARCHIVE_API_URL = os.getenv("BASE_ARCHIVE_API_URL")
 BASE_GEOCODING_API_URL = os.getenv("BASE_GEOCODING_API_URL")
 
 
-def get_city_info(city_name: str) -> tuple[float, float, str]:
+def get_city_info(city_name: str, country_code: str) -> tuple[float, float, str]:
     """
     Returns latitude, longitude, and timezone for a city.
     """
-    url = f"{BASE_GEOCODING_API_URL}/search?name={city_name}&count=1&language=en&format=json"
+    url = f"{BASE_GEOCODING_API_URL}/search?name={city_name}&count=10&language=en&format=json&countryCode={country_code}"
     response = requests.get(url).json()
     result = response["results"][0]
     
