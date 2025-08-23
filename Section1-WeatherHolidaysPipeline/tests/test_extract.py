@@ -1,6 +1,10 @@
+from datetime import datetime
+
 from urllib.parse import urlparse, parse_qs
 
-from pipeline.extract import get_city_info, build_weather_api_url, group_weather_info
+from pipeline.extract import (
+    get_city_info, build_weather_api_url, group_weather_info, get_start_date
+)
 
 
 def test_get_city_info_success(mocker):
@@ -72,3 +76,33 @@ def test_group_weather_info():
     ]
 
     assert group_weather_info(test_dict) == expected_result
+
+
+def test_get_start_date_one_month():
+    current_date = datetime(2025, 8, 23, 12, 0, 0)
+    result = get_start_date(current_date, 1)
+    assert result == datetime(2025, 7, 23, 12, 0, 0)
+
+
+def test_get_start_date_multiple_months():
+    current_date = datetime(2025, 8, 23, 12, 0, 0)
+    result = get_start_date(current_date, 6)
+    assert result == datetime(2025, 2, 23, 12, 0, 0)
+
+
+def test_get_start_date_across_year_boundary():
+    current_date = datetime(2025, 2, 23, 12, 0, 0)
+    result = get_start_date(current_date, 3)
+    assert result == datetime(2024, 11, 23, 12, 0, 0)
+
+
+def test_get_start_date_zero_months():
+    current_date = datetime(2025, 8, 23, 12, 0, 0)
+    result = get_start_date(current_date, 0)
+    assert result == current_date
+
+
+def test_get_start_date_large_offset():
+    current_date = datetime(2025, 8, 23, 12, 0, 0)
+    result = get_start_date(current_date, 24)
+    assert result == datetime(2023, 8, 23, 12, 0, 0)
