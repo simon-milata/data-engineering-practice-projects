@@ -1,8 +1,11 @@
 from datetime import datetime
 
 import pytest
+import pandas as pd
+import pandas.testing as pdt
+from datetime import datetime, date, time
 
-from pipeline.transform import group_weather_info, get_years_from_dates
+from pipeline.transform import group_weather_info, get_years_from_dates, split_date_time_columns
 
 
 def test_group_weather_info():
@@ -63,3 +66,41 @@ def test_get_years_from_dates_leap_year():
     start_date = datetime(2019, 12, 31)
     end_date = datetime(2020, 1, 1)
     assert get_years_from_dates(start_date, end_date) == [2019, 2020]
+
+
+def test_split_date_time_columns_date_and_time():
+    data = [
+        {"time": "2024-10-08T00:00"},
+        {"time": "2024-10-08T01:00"},
+        {"time": "2024-10-08T11:00"}
+    ]
+    
+    expected_data = [
+        {"timestamp": pd.Timestamp("2024-10-08T00:00"), "time": time(0, 0), "date": date(2024, 10, 8)},
+        {"timestamp": pd.Timestamp("2024-10-08T01:00"), "time": time(1, 0), "date": date(2024, 10, 8)},
+        {"timestamp": pd.Timestamp("2024-10-08T11:00"), "time": time(11, 0), "date": date(2024, 10, 8)},
+    ]
+
+    df_result = split_date_time_columns(pd.DataFrame(data))
+    df_expected = pd.DataFrame(expected_data)
+    
+    pdt.assert_frame_equal(df_result, df_expected, check_like=True)
+
+
+def test_split_date_time_columns_dates_only():
+    data = [
+        {"time": "2024-10-06"},
+        {"time": "2024-10-07"},
+        {"time": "2024-10-08"}
+    ]
+    
+    expected_data = [
+        {"timestamp": pd.Timestamp("2024-10-06"), "time": pd.NaT, "date": date(2024, 10, 6)},
+        {"timestamp": pd.Timestamp("2024-10-07"), "time": pd.NaT, "date": date(2024, 10, 7)},
+        {"timestamp": pd.Timestamp("2024-10-08"), "time": pd.NaT, "date": date(2024, 10, 8)},
+    ]
+
+    df_result = split_date_time_columns(pd.DataFrame(data))
+    df_expected = pd.DataFrame(expected_data)
+    
+    pdt.assert_frame_equal(df_result, df_expected, check_like=True)

@@ -1,4 +1,6 @@
-from datetime import datetime
+from datetime import datetime, time
+
+import pandas as pd
 
 
 def group_weather_info(weather_data: dict) -> list[dict]:
@@ -28,3 +30,22 @@ def get_years_from_dates(start_date: datetime, end_date: datetime) -> list:
 
     num_of_years = end_date.year - start_date.year + 1
     return [start_date.year + i for i in range(num_of_years)]
+
+
+def split_date_time_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+        Renames the original 'time' column to 'timestamp'
+        and creates 'date' and 'time' columns from 'timestamp'.
+    """
+    df = df.copy()
+    df = df.rename(columns={"time": "timestamp"})
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["date"] = df["timestamp"].dt.date
+
+    # If all times are 00:00 set time to NaT
+    if (df["timestamp"].dt.time == time(0, 0)).all():
+        df["time"] = pd.NaT
+    else:
+        df["time"] = df["timestamp"].dt.time
+
+    return df
