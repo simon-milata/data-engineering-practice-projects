@@ -5,7 +5,7 @@ from urllib.parse import urlparse, parse_qs
 
 from pipeline.extract import (
     get_city_info, build_weather_api_url, group_weather_info, get_start_date,
-    get_years_from_dates
+    get_years_from_dates, build_url
 )
 
 
@@ -128,3 +128,18 @@ def test_get_years_from_dates_leap_year():
     start_date = datetime(2019, 12, 31)
     end_date = datetime(2020, 1, 1)
     assert get_years_from_dates(start_date, end_date) == [2019, 2020]
+
+
+def test_build_url_no_trailing_leading_slashes():
+    url = build_url(base="https://date.nager.at/api/v3", path="PublicHolidays/2025/AT")
+    assert url == "https://date.nager.at/api/v3/PublicHolidays/2025/AT"
+
+
+def test_build_url_trailing_leading_slashes():
+    url = build_url(base="https://date.nager.at/api/v3/", path="/PublicHolidays/2025/AT")
+    assert url == "https://date.nager.at/api/v3/PublicHolidays/2025/AT"
+
+
+def test_build_url_multiple_trailing_leading_slashes():
+    url = build_url(base="https://date.nager.at/api/v3////", path="///PublicHolidays/2025/AT")
+    assert url == "https://date.nager.at/api/v3/PublicHolidays/2025/AT"

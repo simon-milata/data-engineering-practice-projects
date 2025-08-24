@@ -11,14 +11,15 @@ from dotenv import load_dotenv
 load_dotenv()
 BASE_ARCHIVE_API_URL = os.getenv("BASE_ARCHIVE_API_URL")
 BASE_GEOCODING_API_URL = os.getenv("BASE_GEOCODING_API_URL")
+BASE_HOLIDAY_API_URL = os.getenv("BASE_HOLIDAY_API_URL")
 
 
 def get_city_info(city_name: str, country_code: str) -> tuple[float, float, str]:
     """
     Returns latitude, longitude, and timezone for a city.
     """
-    url = f"{BASE_GEOCODING_API_URL}/search?name={city_name}&count=10&language=en&format=json&countryCode={country_code}"
-    
+    url = build_url(base=BASE_GEOCODING_API_URL, path=f"/search?name={city_name}&count=10&language=en&format=json&countryCode={country_code}")
+
     response = requests.get(url)
     response.raise_for_status()
     result = response.json()["results"][0]
@@ -90,3 +91,13 @@ def get_years_from_dates(start_date: datetime, end_date: datetime) -> list:
 
     num_of_years = end_date.year - start_date.year + 1
     return [start_date.year + i for i in range(num_of_years)]
+
+
+def build_url(base: str, path: str) -> str:
+    """
+    Join base URL with path, ensuring no double slashes.
+    """
+    base = base.strip("/")
+    path = path.strip("/")
+    return "/".join([base, path])
+
