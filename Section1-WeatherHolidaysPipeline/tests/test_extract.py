@@ -5,7 +5,7 @@ from urllib.parse import urlparse, parse_qs
 
 from pipeline.extract import (
     get_city_info, build_weather_api_url, group_weather_info, get_start_date,
-    get_years_from_dates, build_url
+    get_years_from_dates, build_url, get_holidays
 )
 
 
@@ -143,3 +143,72 @@ def test_build_url_trailing_leading_slashes():
 def test_build_url_multiple_trailing_leading_slashes():
     url = build_url(base="https://date.nager.at/api/v3////", path="///PublicHolidays/2025/AT")
     assert url == "https://date.nager.at/api/v3/PublicHolidays/2025/AT"
+
+
+def test_get_holidays_single_year(mocker):
+    mock_response = [{"date": "2025-01-01", "name": "New Year's Day"}]
+
+    mock_requests = mocker.patch("pipeline.extract.requests.get")
+    mock_requests.return_value.json.return_value = mock_response
+    mock_requests.return_value.raise_for_status = lambda: None
+
+    result = get_holidays("AT", [2025])
+
+    assert result == mock_response
+    assert len(result) == 1
+    mock_requests.assert_called_once_with("https://date.nager.at/api/v3/PublicHolidays/2025/AT")
+
+
+def test_get_holidays_multiple_years(mocker):
+    mock_responses = [
+        [{"date": "2025-01-01", "name": "New Year's Day"}],
+        [{"date": "2026-01-01", "name": "New Year's Day"}],
+    ]
+
+    mock_get = mocker.patch("pipeline.extract.requests.get")
+    mock_get.return_value.raise_for_status = lambda: None
+    mock_get.return_value.json.side_effect = mock_responses
+
+    result = get_holidays("AT", [2025, 2026])
+
+    assert result == [
+        {"date": "2025-01-01", "name": "New Year's Day"},
+        {"date": "2026-01-01", "name": "New Year's Day"},
+    ]
+    assert mock_get.call_count == 2
+    mock_get.assert_any_call("https://date.nager.at/api/v3/PublicHolidays/2025/AT")
+    mock_get.assert_any_call("https://date.nager.at/api/v3/PublicHolidays/2026/AT")
+
+
+def test_get_holidays_multiple_items(mocker):
+    mock_response = [
+        {"date": "2025-01-01", "name": "New Year's Day"},
+        {"date": "2025-12-25", "name": "Christmas Day"}
+    ]
+
+    mock_requests = mocker.patch("pipeline.extract.requests.get")
+    mock_requests.return_value.json.return_value = mock_response
+    mock_requests.return_value.raise_for_status = lambda: None
+
+    result = get_holidays("AT", [2025])
+
+    assert result == mock_response
+    assert len(result) == 2
+
+
+def test_get_holidays_duplicate_names(mocker):
+    mock_response = [
+        {"date": "2025-04-20", "name": "Easter"},
+        {"date": "2025-04-21", "name": "Easter"},
+    ]
+
+    mock_requests = mocker.patch("pipeline.extract.requests.get")
+    mock_requests.return_value.json.return_value = mock_response
+    mock_requests.return_value.raise_for_status = lambda: None
+
+    result = get_holidays("AT", [2025])
+
+    assert len(result) == 2
+    assert result[0]["name"] == "Easter"
+    assert result[1]["name"] == "Easter"
+    assert result[0]["date"] != result[1]["date"]

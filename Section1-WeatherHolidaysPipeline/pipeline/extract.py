@@ -101,3 +101,13 @@ def build_url(base: str, path: str) -> str:
     path = path.strip("/")
     return "/".join([base, path])
 
+
+def get_holidays(country_code: str, years: list) -> list[dict]:
+    data = []
+
+    for year in years:
+        url = build_url(base=BASE_HOLIDAY_API_URL, path=f"/PublicHolidays/{year}/{country_code}")
+        response = requests.get(url)
+        response.raise_for_status()
+        data.extend(response.json())
+    return data
