@@ -4,8 +4,7 @@ import pytest
 from urllib.parse import urlparse, parse_qs
 
 from pipeline.extract import (
-    get_city_info, build_weather_api_url, group_weather_info, get_start_date,
-    get_years_from_dates, build_url, get_holidays
+    get_city_info, build_weather_api_url, get_start_date, build_url, get_holidays
 )
 
 
@@ -40,38 +39,6 @@ def test_build_weather_api_url():
     assert parsed_params["hourly"][0] == "temperature_2m,relative_humidity_2m,soil_moisture_7_to_28cm"
 
 
-def test_group_weather_info():
-    test_dict = {
-        "time": ["2025-08-07", "2025-08-08", "2025-08-09"],
-        "temperature_2m_mean": [18.8, 20.8, 22.1],
-        "temperature_2m_max": [24.2, 26.9, 28.6],
-        "temperature_2m_min": [12.7, 15.5, 14.9]
-    }
-   
-    expected_result = [
-        {
-            "time": "2025-08-07",
-            "temperature_2m_mean": 18.8,
-            "temperature_2m_max": 24.2,
-            "temperature_2m_min": 12.7
-        },
-        {
-            "time": "2025-08-08",
-            "temperature_2m_mean": 20.8,
-            "temperature_2m_max": 26.9,
-            "temperature_2m_min": 15.5
-        },
-        {
-            "time": "2025-08-09",
-            "temperature_2m_mean": 22.1,
-            "temperature_2m_max": 28.6,
-            "temperature_2m_min": 14.9
-        },
-    ]
-
-    assert group_weather_info(test_dict) == expected_result
-
-
 def test_get_start_date_one_month():
     current_date = datetime(2025, 8, 23, 12, 0, 0)
     result = get_start_date(current_date, 1)
@@ -100,34 +67,6 @@ def test_get_start_date_large_offset():
     current_date = datetime(2025, 8, 23, 12, 0, 0)
     result = get_start_date(current_date, 24)
     assert result == datetime(2023, 8, 23, 12, 0, 0)
-
-
-def test_get_years_from_dates_five_years():
-    start_date = datetime(2020, 8, 12)
-    end_date = datetime(2025, 8, 12)
-
-    expected = [2020, 2021, 2022, 2023, 2024, 2025]
-    
-    assert get_years_from_dates(start_date=start_date, end_date=end_date) == expected
-
-
-def test_get_years_from_dates_same_year():
-    start_date = datetime(2023, 1, 1)
-    end_date = datetime(2023, 12, 31)
-    assert get_years_from_dates(start_date, end_date) == [2023]
-
-
-def test_get_years_from_dates_invalid_order():
-    start_date = datetime(2025, 1, 1)
-    end_date = datetime(2020, 1, 1)
-    with pytest.raises(ValueError):
-        get_years_from_dates(start_date, end_date)
-
-
-def test_get_years_from_dates_leap_year():
-    start_date = datetime(2019, 12, 31)
-    end_date = datetime(2020, 1, 1)
-    assert get_years_from_dates(start_date, end_date) == [2019, 2020]
 
 
 def test_build_url_no_trailing_leading_slashes():
