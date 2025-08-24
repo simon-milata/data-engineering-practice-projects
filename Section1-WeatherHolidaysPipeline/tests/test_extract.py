@@ -1,9 +1,11 @@
 from datetime import datetime
 
+import pytest
 from urllib.parse import urlparse, parse_qs
 
 from pipeline.extract import (
-    get_city_info, build_weather_api_url, group_weather_info, get_start_date
+    get_city_info, build_weather_api_url, group_weather_info, get_start_date,
+    get_years_from_dates
 )
 
 
@@ -98,3 +100,31 @@ def test_get_start_date_large_offset():
     current_date = datetime(2025, 8, 23, 12, 0, 0)
     result = get_start_date(current_date, 24)
     assert result == datetime(2023, 8, 23, 12, 0, 0)
+
+
+def test_get_years_from_dates_five_years():
+    start_date = datetime(2020, 8, 12)
+    end_date = datetime(2025, 8, 12)
+
+    expected = [2020, 2021, 2022, 2023, 2024, 2025]
+    
+    assert get_years_from_dates(start_date=start_date, end_date=end_date) == expected
+
+
+def test_get_years_from_dates_same_year():
+    start_date = datetime(2023, 1, 1)
+    end_date = datetime(2023, 12, 31)
+    assert get_years_from_dates(start_date, end_date) == [2023]
+
+
+def test_get_years_from_dates_invalid_order():
+    start_date = datetime(2025, 1, 1)
+    end_date = datetime(2020, 1, 1)
+    with pytest.raises(ValueError):
+        get_years_from_dates(start_date, end_date)
+
+
+def test_get_years_from_dates_leap_year():
+    start_date = datetime(2019, 12, 31)
+    end_date = datetime(2020, 1, 1)
+    assert get_years_from_dates(start_date, end_date) == [2019, 2020]
