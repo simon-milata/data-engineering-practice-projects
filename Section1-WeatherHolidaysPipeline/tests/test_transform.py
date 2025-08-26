@@ -5,7 +5,10 @@ import pandas as pd
 import pandas.testing as pdt
 from datetime import datetime, date, time
 
-from pipeline.transform import group_weather_info, get_years_from_dates, split_date_time_columns
+from pipeline.transform import (
+    group_weather_info, get_years_from_dates, split_date_time_columns,
+    to_holiday_dates
+)
 
 
 def test_group_weather_info():
@@ -104,3 +107,12 @@ def test_split_date_time_columns_dates_only():
     df_expected = pd.DataFrame(expected_data)
     
     pdt.assert_frame_equal(df_result, df_expected, check_like=True)
+
+
+def test_to_holiday_dates():
+    df = pd.DataFrame({"date": ["2025-01-01", "2025-01-02"], "value": [1, 2]})
+    result = to_holiday_dates(df)
+
+    assert list(result.columns) == ["date", "is_holiday"]
+    assert (result["is_holiday"] == True).all()
+    assert len(result) == len(df)

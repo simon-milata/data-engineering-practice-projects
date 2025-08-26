@@ -49,3 +49,15 @@ def split_date_time_columns(df: pd.DataFrame) -> pd.DataFrame:
         df["time"] = df["timestamp"].dt.time
 
     return df
+
+
+def to_holiday_dates(dataframe: pd.DataFrame):
+    """
+        Return a DataFrame with only a 'date' column and a new 
+        'is_holiday' column set to True for all rows.
+    """
+    df = dataframe.copy()
+    df = df[["date"]]
+    df["is_holiday"] = True
+
+    return df
