@@ -27,9 +27,9 @@ def test_get_city_info_success(mocker):
 
 def test_build_weather_api_url():
     url = build_weather_api_url(
-        lat=52.52, long=13.41,
+        lat=52.52, long=13.41, frequency="hourly",
         start_date="2025-08-07", end_date="2025-08-21", timezone="Europe/Helsinki",
-        hourly="temperature_2m,relative_humidity_2m,soil_moisture_7_to_28cm"
+        variables="temperature_2m,relative_humidity_2m,soil_moisture_7_to_28cm"
     )
     parsed_params = parse_qs(urlparse(url).query)
     assert parsed_params["latitude"][0] == "52.52"
