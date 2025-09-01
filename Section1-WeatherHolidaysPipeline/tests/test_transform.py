@@ -1,13 +1,13 @@
-from datetime import datetime
+from datetime import datetime, date, time
 
 import pytest
 import pandas as pd
 import pandas.testing as pdt
-from datetime import datetime, date, time
+import numpy as np
 
 from pipeline.transform import (
     group_weather_info, get_years_from_dates, split_date_time_columns,
-    to_holiday_dates
+    to_holiday_dates, cast_weather_data_types
 )
 
 
@@ -116,3 +116,51 @@ def test_to_holiday_dates():
     assert list(result.columns) == ["date", "is_holiday"]
     assert (result["is_holiday"] == True).all()
     assert len(result) == len(df)
+
+
+def test_cast_weather_data_types():
+    input_data = [
+        {
+            "timestamp": "2024-10-26", 
+            "temperature_2m_mean": "10.7", 
+            "temperature_2m_max": "11.2",
+            "temperature_2m_min": "7",
+            "precipitation_sum": "6.2",
+            "weather_code": "51.0",
+            "date": "2024-10-26"
+        }
+    ]
+    df = pd.DataFrame(input_data)
+    df = cast_weather_data_types(dataframe=df)
+
+    assert pd.api.types.is_datetime64_any_dtype(df["timestamp"])
+    assert df["temperature_2m_mean"].dtype == "Float32"
+    assert df["temperature_2m_max"].dtype == "Float32"
+    assert df["temperature_2m_min"].dtype == "Float32"
+    assert df["precipitation_sum"].dtype == "Float32"
+    assert df["weather_code"].dtype == "Int32"
+    assert pd.api.types.is_datetime64_any_dtype(df["date"])
+
+
+def test_cast_weather_data_types_nans():
+    input_data = [
+        {
+            "timestamp": pd.NaT, 
+            "temperature_2m_mean": pd.NA, 
+            "temperature_2m_max": pd.NA,
+            "temperature_2m_min": pd.NA,
+            "precipitation_sum": pd.NA,
+            "weather_code": pd.NA, 
+            "date": pd.NaT
+        }
+    ]
+    df = pd.DataFrame(input_data)
+    df = cast_weather_data_types(dataframe=df)
+
+    assert pd.api.types.is_datetime64_any_dtype(df["timestamp"])
+    assert df["temperature_2m_mean"].dtype == "Float32"
+    assert df["temperature_2m_max"].dtype == "Float32"
+    assert df["temperature_2m_min"].dtype == "Float32"
+    assert df["precipitation_sum"].dtype == "Float32"
+    assert df["weather_code"].dtype == "Int32"
+    assert pd.api.types.is_datetime64_any_dtype(df["date"])

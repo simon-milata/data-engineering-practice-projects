@@ -61,3 +61,19 @@ def to_holiday_dates(dataframe: pd.DataFrame):
     df["is_holiday"] = True
 
     return df
+
+
+def cast_weather_data_types(dataframe: pd.DataFrame) -> pd.DataFrame:
+    df = dataframe.copy()
+
+    df["temperature_2m_mean"] = df["temperature_2m_mean"].astype("Float32")
+    df["temperature_2m_max"] = df["temperature_2m_max"].astype("Float32")
+    df["temperature_2m_min"] = df["temperature_2m_min"].astype("Float32")
+    df["precipitation_sum"] = df["precipitation_sum"].astype("Float32")
+
+    df["weather_code"] = df["weather_code"].astype("Float32").round().astype("Int32")
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["date"] = pd.to_datetime(df["date"])
+
+    return df
